@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Pencil")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ffcf5898edb0cea2e15511194411e77b39e4c2bf")]
 [assembly: System.Reflection.AssemblyProductAttribute("Pencil")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Pencil")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

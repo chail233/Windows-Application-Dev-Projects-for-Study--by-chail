@@ -13,21 +13,19 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Document\\DEV-Windows\\Pencil\\Pencil\\Pencil.csproj",
+      "projectUniqueName": "D:\\Document\\DEV-Windows\\Pencil-6\\Pencil\\Pencil.csproj",
       "projectName": "Pencil",
-      "projectPath": "D:\\Document\\DEV-Windows\\Pencil\\Pencil\\Pencil.csproj",
+      "projectPath": "D:\\Document\\DEV-Windows\\Pencil-6\\Pencil\\Pencil.csproj",
       "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-      "outputPath": "D:\\Document\\DEV-Windows\\Pencil\\Pencil\\obj\\",
+      "outputPath": "D:\\Document\\DEV-Windows\\Pencil-6\\Pencil\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
