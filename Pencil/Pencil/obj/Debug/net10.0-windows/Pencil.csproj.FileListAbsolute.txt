@@ -35,3 +35,5 @@ D:\Document\DEV-Windows\Pencil-6\Pencil\obj\Debug\net10.0-windows\Pencil.genrunt
 D:\Document\DEV-Windows\Pencil-6\Pencil\obj\Debug\net10.0-windows\ref\Pencil.dll
 D:\Document\DEV-Windows\Pencil-6\Pencil\obj\Debug\net10.0-windows\Pencil.Properties.Resources.resources
 D:\Document\DEV-Windows\Pencil-6\Pencil\obj\Debug\net10.0-windows\Pencil.sourcelink.json
+D:\Document\DEV-Windows\Pencil\Pencil\obj\Debug\net10.0-windows\Pencil.sourcelink.json
+D:\Document\DEV-Windows\Pencil\Pencil\obj\Debug\net10.0-windows\Pencil.DlgDrawTools.resources

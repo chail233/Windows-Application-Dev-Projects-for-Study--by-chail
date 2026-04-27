@@ -2,6 +2,9 @@ using System.DirectoryServices;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Drawing.Imaging;
+using System.Threading;
+using System.Runtime.InteropServices;
+using System.Reflection;
 namespace Pencil
 {
     public partial class FormMain : Form
@@ -9,8 +12,18 @@ namespace Pencil
         public FormMain()
         {
             InitializeComponent();
+            //安装钩子
+            try
+            {
+                HookStart();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
             _bufGraphCont = BufferedGraphicsManager.Current;
-            _bufGraph = _bufGraphCont.Allocate(this.CreateGraphics(), this.ClientRectangle);
+            _bufGraph = _bufGraphCont.Allocate(panelDraw.CreateGraphics(), panelDraw.ClientRectangle);
             _bufGraph.Graphics.Clear(Color.White);
             _bufGraph.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
         }
@@ -25,76 +38,110 @@ namespace Pencil
         private string _filename = "";
         //是否需要保存的标记， true是false否
         private Boolean _saveFlag = false;
+        //图形缩放系数
+        private double _zoomRatio = 1;
+        //panelDraw窗口尺寸
+        private Size _panelDrawInitSize = new Size(0, 0);
+        //屏幕位图
+        private Bitmap _screenBmp = null;
+        private Graphics _screenBmpGraphics = null;
+
+        //------------------------------------------------------------------------------------------------------------------
+
+        public struct KeyMSG
+        {
+            public int vkCode;//键盘虚拟码
+            public int scanCode;//硬件扫描码
+            public int flags;//按下128；抬起0
+            public int time;//Window运行时间
+            public int dwExtraInfo;
+        }
+
+        public delegate int HookProc(int nCode, Int32 wParam, IntPtr lParam);
+        static int hKeyboardHook = 0;
+        HookProc KeyboardHookProcedure;
+
+        //安装钩子
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern int SetWindowsHookEx(int idHook, HookProc Ipfn, IntPtr hInstance, int threadid);
+        //卸载钩子
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern bool UnhookWindowsHookEx(int idHook);
+        //继续下一个
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern int CallNextHookEx(int idHook, int nCode, Int32 wParam, IntPtr lParam);
+
+        //钩子处理：
+        private int KeyboardHookProc(int nCode, Int32 wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                //将lParam转换成键盘消息
+                KeyMSG m = (KeyMSG)Marshal.PtrToStructure(lParam, typeof(KeyMSG));
+                if (m.flags == 0 && m.vkCode == (int)Keys.F3)
+                {
+                    MenuItemScreenPen_Click(this, null);
+                    return 1;
+                }
+                //如果返回1， 则结束消息，如果返回零或调用CallNextHookEx，则消息继续往下传递。
+                return 0;
+            }
+            return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam);
+        }
+        //安装钩子
+        public void HookStart()
+        {
+            if (hKeyboardHook == 0)
+            {
+                //创建HookProc实例
+                KeyboardHookProcedure = new HookProc(KeyboardHookProc);
+                //设置线程钩子
+                hKeyboardHook = SetWindowsHookEx(13, KeyboardHookProcedure, Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]), 0);
+                //如果钩子设置失败
+                if (hKeyboardHook == 0)
+                {
+                    HookStop();
+                    throw new Exception("SetWindowsHookEx failed.");
+                }
+            }
+        }
+        //卸载钩子
+        public void HookStop()
+        {
+            bool retKeyboard = true;
+            if (hKeyboardHook != 0)
+            {
+                retKeyboard = UnhookWindowsHookEx(hKeyboardHook);
+                hKeyboardHook = 0;
+            }
+            if (!retKeyboard)
+            {
+                throw new Exception("UnHookWindowsHookEx failed.");
+            }
+        }
         private void FormMain_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_drawType != DrawType.Stop)
-            {
-                if (_drawType == DrawType.Line)
-                {
-                    _tempShape = new Line();
-                    ((Line)_tempShape)._P1 = new Point(e.X, e.Y);
-                }
-                else if (_drawType == DrawType.Rectangle)
-                {
-                    _tempShape = new Rectangle();
-                    ((Rectangle)_tempShape)._P1 = new Point(e.X, e.Y);
-                }
-                else if (_drawType == DrawType.Circle)
-                {
-                    _tempShape = new Circle();
-                    ((Circle)_tempShape)._PCenter = new Point(e.X, e.Y);
-                }
-                _tempShape._PenWidth = _drawWidth;
-                _tempShape._PenColor = _drawColor;
-            }
+
         }
 
         private void FormMain_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_drawType != DrawType.Stop)
-            {
-                if (_drawType == DrawType.Line)
-                {
-                    ((Line)_tempShape)._P2 = new Point(e.X, e.Y);
-                }
-                else if (_drawType == DrawType.Rectangle)
-                {
-                    ((Rectangle)_tempShape)._P2 = new Point(e.X, e.Y);
-                }
-                else if (_drawType == DrawType.Circle)
-                {
-                    int tx = ((Circle)_tempShape)._PCenter.X;
-                    int ty = ((Circle)_tempShape)._PCenter.Y;
-                    ((Circle)_tempShape)._R = (float)Math.Sqrt(Math.Pow(e.X - tx, 2) + Math.Pow(e.Y - ty, 2));
-                }
-                _listShape.Add(_tempShape);
-                _tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid);
-                _bufGraph.Render(this.CreateGraphics());
-                //重置重做的功能
-                _listTempShape.Clear();
-                MenuItemRedo.Enabled = false;
-            }
-            MenuItemUndo.Enabled = true;
-            _saveFlag = true;
+
         }
 
         private void FormMain_Paint(object sender, PaintEventArgs e)
         {
-            foreach (Shape tempShape in _listShape)
-            {
-                tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid);
-            }
-            _bufGraph.Render(e.Graphics);
+
         }
-        private void MenuItemLine_Click(object sender, EventArgs e)
+        public void MenuItemLine_Click(object sender, EventArgs e)
         {
             _drawType = DrawType.Line;
         }
-        private void MenuItemRectangle_Click(object sender, EventArgs e)
+        public void MenuItemRectangle_Click(object sender, EventArgs e)
         {
             _drawType = DrawType.Rectangle;
         }
-        private void MenuItemCircle_Click(object sender, EventArgs e)
+        public void MenuItemCircle_Click(object sender, EventArgs e)
         {
             _drawType = DrawType.Circle;
         }
@@ -112,42 +159,20 @@ namespace Pencil
             statusStrip1.Cursor = penCur;
             MenuItemUndo.Enabled = false;
             MenuItemRedo.Enabled = false;
+            _panelDrawInitSize = panelDraw.Size;
+            int screenwidth = Screen.PrimaryScreen.Bounds.Width;
+            int screenheigth = Screen.PrimaryScreen.Bounds.Height;
+            _screenBmp = new Bitmap(screenwidth, screenheigth);
+            _screenBmpGraphics = Graphics.FromImage(_screenBmp);
+            _screenBmpGraphics.Clear(Color.White);
         }
 
         private void FormMain_MouseMove(object sender, MouseEventArgs e)
         {
-            StatusLabelPosition.Text = "鼠标: x=" + e.X.ToString() + ",y=" + e.Y.ToString();
-            if (e.Button == MouseButtons.Left)
-            {
-                if (_drawType != DrawType.Stop)
-                {
 
-                    _bufGraph.Graphics.Clear(Color.White);
-                    foreach (Shape shape in _listShape)
-                    {
-                        shape.Draw(_bufGraph.Graphics, DashStyle.Solid);
-                    }
-                    if (_drawType == DrawType.Line)
-                    {
-                        ((Line)_tempShape)._P2 = e.Location;
-                    }
-                    else if (_drawType == DrawType.Rectangle)
-                    {
-                        ((Rectangle)_tempShape)._P2 = e.Location;
-                    }
-                    else if (_drawType == DrawType.Circle)
-                    {
-                        int tx = ((Circle)_tempShape)._PCenter.X;
-                        int ty = ((Circle)_tempShape)._PCenter.Y;
-                        ((Circle)_tempShape)._R = (float)Math.Sqrt(Math.Pow(e.X - tx, 2) + Math.Pow(e.Y - ty, 2));
-                    }
-                    _tempShape.Draw(_bufGraph.Graphics, DashStyle.Dash);
-                    _bufGraph.Render(this.CreateGraphics());
-                }
-            }
         }
 
-        private void MenuItemWidth_Click(object sender, EventArgs e)
+        public void MenuItemWidth_Click(object sender, EventArgs e)
         {
             DigPenWidth digPenWidth = new DigPenWidth();
             digPenWidth.numericUpDownWidth.Value = _drawWidth;
@@ -157,7 +182,7 @@ namespace Pencil
             }
         }
 
-        private void MenuItemColor_Click(object sender, EventArgs e)
+        public void MenuItemColor_Click(object sender, EventArgs e)
         {
             colorDialog1.Color = _drawColor;
             if (colorDialog1.ShowDialog(this) == DialogResult.OK)
@@ -166,19 +191,20 @@ namespace Pencil
             }
         }
 
-        private void MenuItemUndo_Click(object sender, EventArgs e)
+        public void MenuItemUndo_Click(object sender, EventArgs e)
         {
             if (_listShape.Count > 0)
             {
                 _listTempShape.Add(_listShape[_listShape.Count - 1]);//把最后一个先加进临时List
                 _listShape.RemoveAt(_listShape.Count - 1);//删除最后的图元
                 _bufGraph.Graphics.Clear(Color.White);
+                _bufGraph.Graphics.DrawImage(_screenBmp, new Point(0, 0));
                 //再次把图元绘制到缓冲区
                 foreach (Shape shape in _listShape)
                 {
-                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid);
+                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
                 }
-                _bufGraph.Render(this.CreateGraphics());//绘制到窗口
+                _bufGraph.Render(panelDraw.CreateGraphics());//绘制到窗口
                 //启动重做菜单
                 MenuItemRedo.Enabled = true;
                 toolStripButtonRedo.Enabled = true;
@@ -201,11 +227,12 @@ namespace Pencil
                 _listTempShape.RemoveAt(_listTempShape.Count - 1);
                 //再次刷新图像
                 _bufGraph.Graphics.Clear(Color.White);
+                _bufGraph.Graphics.DrawImage(_screenBmp, new Point(0, 0));
                 foreach (Shape shape in _listShape)
                 {
-                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid);
+                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
                 }
-                _bufGraph.Render(this.CreateGraphics());
+                _bufGraph.Render(panelDraw.CreateGraphics());
                 //判断是否需要启用重做
                 if (_listTempShape.Count == 0)
                 {
@@ -281,7 +308,7 @@ namespace Pencil
             _listShape.Clear();
             _listTempShape.Clear();
             _bufGraph.Graphics.Clear(Color.White);
-            _bufGraph.Render(this.CreateGraphics());
+            _bufGraph.Render(panelDraw.CreateGraphics());
             //清空文件名
             _filename = "";
             this.Text = "画笔-无标题";
@@ -360,6 +387,12 @@ namespace Pencil
                     shape.Read(br);
                     _listShape.Add(shape);
                 }
+                else if (ShapeType == "Pencil.Sketch")
+                {
+                    Sketch shape = new Sketch();
+                    shape.Read(br);
+                    _listShape.Add(shape);
+                }
                 else
                 {
                     MessageBox.Show("图元类型错误。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -371,9 +404,9 @@ namespace Pencil
                 _bufGraph.Graphics.Clear(Color.White);
                 foreach (Shape shape in _listShape)
                 {
-                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid);
+                    shape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
                 }
-                _bufGraph.Render(this.CreateGraphics());
+                _bufGraph.Render(panelDraw.CreateGraphics());
             }
         }
 
@@ -425,7 +458,7 @@ namespace Pencil
 
         private void MenuItemSaveasPic_Click(object sender, EventArgs e)
         {
-            if(saveFileDialog2.ShowDialog(this) == DialogResult.OK)
+            if (saveFileDialog2.ShowDialog(this) == DialogResult.OK)
             {
                 // 保存图片逻辑
                 //创建一个 Bitmap 对象，大小与当前窗口相同
@@ -458,6 +491,195 @@ namespace Pencil
                     MessageBox.Show("不支持的图片格式。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        public void MenuItemSketch_Click(object sender, EventArgs e)
+        {
+            _drawType = DrawType.Sketch;
+        }
+
+        private void panelDraw_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (_drawType != DrawType.Stop)
+            {
+                if (_drawType == DrawType.Line)
+                {
+                    _tempShape = new Line();
+                    ((Line)_tempShape)._P1 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                }
+                else if (_drawType == DrawType.Rectangle)
+                {
+                    _tempShape = new Rectangle();
+                    ((Rectangle)_tempShape)._P1 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                }
+                else if (_drawType == DrawType.Circle)
+                {
+                    _tempShape = new Circle();
+                    ((Circle)_tempShape)._PCenter = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                }
+                else if (_drawType == DrawType.Sketch)
+                {
+                    _tempShape = new Sketch();
+                    ((Sketch)_tempShape)._PointList.Add(new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio)));
+                }
+                _tempShape._PenWidth = _drawWidth;
+                _tempShape._PenColor = _drawColor;
+            }
+        }
+
+        private void panelDraw_MouseMove(object sender, MouseEventArgs e)
+        {
+            StatusLabelPosition.Text = "鼠标: x=" + e.X.ToString() + ",y=" + e.Y.ToString();
+            if (e.Button == MouseButtons.Left)
+            {
+                if (_drawType != DrawType.Stop)
+                {
+
+                    _bufGraph.Graphics.Clear(Color.White);
+                    _bufGraph.Graphics.DrawImage(_screenBmp, new Point(0, 0));
+                    foreach (Shape shape in _listShape)
+                    {
+                        shape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
+                    }
+                    if (_drawType == DrawType.Line)
+                    {
+                        //显示位置信息
+                        ((Line)_tempShape)._P2 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                        StatusLabelPosition.Text += " x1:" + ((Line)_tempShape)._P1.X.ToString() + " y1:" + ((Line)_tempShape)._P1.Y.ToString();
+                        StatusLabelPosition.Text += " x2:" + ((Line)_tempShape)._P2.X.ToString() + " y2:" + ((Line)_tempShape)._P2.Y.ToString();
+
+                    }
+                    else if (_drawType == DrawType.Rectangle)
+                    {
+                        ((Rectangle)_tempShape)._P2 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                    }
+                    else if (_drawType == DrawType.Circle)
+                    {
+                        int tx = ((Circle)_tempShape)._PCenter.X;
+                        int ty = ((Circle)_tempShape)._PCenter.Y;
+                        ((Circle)_tempShape)._R = (float)Math.Sqrt(Math.Pow((int)(e.X / _zoomRatio) - tx, 2) + Math.Pow((int)(e.Y / _zoomRatio) - ty, 2));
+                        //显示半径
+                        StatusLabelPosition.Text += " 半径:" + ((Circle)_tempShape)._R.ToString();
+                    }
+                    else if (_drawType == DrawType.Sketch)
+                    {
+                        ((Sketch)_tempShape)._PointList.Add(new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio)));
+                    }
+                    _tempShape.Draw(_bufGraph.Graphics, DashStyle.Dash, _zoomRatio);
+                    _bufGraph.Render(panelDraw.CreateGraphics());
+                }
+            }
+        }
+
+        private void panelDraw_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (_drawType != DrawType.Stop)
+            {
+                if (_drawType == DrawType.Line)
+                {
+                    ((Line)_tempShape)._P2 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                }
+                else if (_drawType == DrawType.Rectangle)
+                {
+                    ((Rectangle)_tempShape)._P2 = new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio));
+                }
+                else if (_drawType == DrawType.Circle)
+                {
+                    int tx = ((Circle)_tempShape)._PCenter.X;
+                    int ty = ((Circle)_tempShape)._PCenter.Y;
+                    ((Circle)_tempShape)._R = (float)Math.Sqrt(Math.Pow((int)(e.X / _zoomRatio) - tx, 2) + Math.Pow((int)(e.X / _zoomRatio) - ty, 2));
+                }
+                else if (_drawType == DrawType.Sketch)
+                {
+                    ((Sketch)_tempShape)._PointList.Add(new Point((int)(e.X / _zoomRatio), (int)(e.Y / _zoomRatio)));
+                }
+                _listShape.Add(_tempShape);
+                _tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
+                _bufGraph.Render(panelDraw.CreateGraphics());
+                //重置重做的功能
+                _listTempShape.Clear();
+                MenuItemRedo.Enabled = false;
+            }
+            MenuItemUndo.Enabled = true;
+            _saveFlag = true;
+        }
+
+        private void panelDraw_Paint(object sender, PaintEventArgs e)
+        {
+            _bufGraph.Graphics.DrawImage(_screenBmp, new Point(0, 0));
+            foreach (Shape tempShape in _listShape)
+            {
+                tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
+            }
+            _bufGraph.Render(e.Graphics);
+        }
+
+        private void MenuItemZoomIn_Click(object sender, EventArgs e)
+        {
+            //保存缩放比例
+            _zoomRatio = _zoomRatio * 1.1;
+            //设置宽度高度
+            panelDraw.Height = (int)(_panelDrawInitSize.Height * _zoomRatio);
+            panelDraw.Width = (int)(_panelDrawInitSize.Width * _zoomRatio);
+            //重置图形缓冲区
+            _bufGraph = _bufGraphCont.Allocate(panelDraw.CreateGraphics(), panelDraw.ClientRectangle);
+            //设置抗锯齿
+            _bufGraph.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            //清空缓冲区
+            _bufGraph.Graphics.Clear(Color.White);
+            foreach (Shape tempShape in _listShape)
+            {
+                tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
+            }
+            _bufGraph.Render(panelDraw.CreateGraphics());
+        }
+
+        private void MenuItemZoomOut_Click(object sender, EventArgs e)
+        {
+            //保存缩放比例
+            _zoomRatio = _zoomRatio * 0.9;
+            //设置宽度高度
+            panelDraw.Height = (int)(_panelDrawInitSize.Height * _zoomRatio);
+            panelDraw.Width = (int)(_panelDrawInitSize.Width * _zoomRatio);
+            //重置图形缓冲区
+            _bufGraph = _bufGraphCont.Allocate(panelDraw.CreateGraphics(), panelDraw.ClientRectangle);
+            //设置抗锯齿
+            _bufGraph.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            //清空缓冲区
+            _bufGraph.Graphics.Clear(Color.White);
+            foreach (Shape tempShape in _listShape)
+            {
+                tempShape.Draw(_bufGraph.Graphics, DashStyle.Solid, _zoomRatio);
+            }
+            _bufGraph.Render(panelDraw.CreateGraphics());
+        }
+
+        private void MenuItemScreenPen_Click(object sender, EventArgs e)
+        {
+            if (this.FormBorderStyle == FormBorderStyle.None) return;
+            this.WindowState = FormWindowState.Minimized;
+            menuStrip1.Visible = false;
+            toolStrip1.Visible = false;
+            statusStrip1.Visible = false;
+            this.FormBorderStyle = FormBorderStyle.None;
+            Thread.Sleep(300);
+            int screenwidth = _screenBmp.Width;
+            int screenheight = _screenBmp.Height;
+            _screenBmpGraphics.CopyFromScreen(0, 0, 0, 0, new Size(screenwidth, screenheight));
+            panelDraw.Width = screenwidth;
+            panelDraw.Height = screenheight;
+            _zoomRatio = 1;
+            _panelDrawInitSize = new Size(screenwidth, screenheight);
+            _bufGraph = _bufGraphCont.Allocate(panelDraw.CreateGraphics(), panelDraw.ClientRectangle);
+            _bufGraph.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            _bufGraph.Graphics.Clear(Color.White);
+            _bufGraph.Graphics.DrawImage(_screenBmp, new Point(0, 0));
+            _bufGraph.Render(panelDraw.CreateGraphics());
+            this.WindowState = FormWindowState.Maximized;
+
+            DlgDrawTools myDlgDrawTools = new DlgDrawTools();
+            myDlgDrawTools.formMain = this;
+            myDlgDrawTools.Show();
         }
     }
 }

@@ -42,6 +42,7 @@
             MenuItemLine = new ToolStripMenuItem();
             MenuItemRectangle = new ToolStripMenuItem();
             MenuItemCircle = new ToolStripMenuItem();
+            MenuItemSketch = new ToolStripMenuItem();
             MenuItemStop = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             MenuItemUndo = new ToolStripMenuItem();
@@ -49,11 +50,17 @@
             MenuItemSetting = new ToolStripMenuItem();
             MenuItemWidth = new ToolStripMenuItem();
             MenuItemColor = new ToolStripMenuItem();
+            查看ToolStripMenuItem = new ToolStripMenuItem();
+            MenuItemZoomIn = new ToolStripMenuItem();
+            MenuItemZoomOut = new ToolStripMenuItem();
+            其它ToolStripMenuItem = new ToolStripMenuItem();
+            MenuItemScreenPen = new ToolStripMenuItem();
             colorDialog1 = new ColorDialog();
             toolStrip1 = new ToolStrip();
             toolStripButtonLine = new ToolStripButton();
             toolStripButtonRectangle = new ToolStripButton();
             toolStripButtonCircle = new ToolStripButton();
+            toolStripButtonSketch = new ToolStripButton();
             toolStripSeparator1 = new ToolStripSeparator();
             toolStripButtonUndo = new ToolStripButton();
             toolStripButtonRedo = new ToolStripButton();
@@ -70,20 +77,25 @@
             ToolStripMenuItemYellow = new ToolStripMenuItem();
             ToolStripMenuItemBlue = new ToolStripMenuItem();
             ToolStripMenuItemBlack = new ToolStripMenuItem();
+            toolStripButtonZoomIn = new ToolStripButton();
+            toolStripButtoZoomOut = new ToolStripButton();
             statusStrip1 = new StatusStrip();
             StatusLabelPosition = new ToolStripStatusLabel();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
             saveFileDialog2 = new SaveFileDialog();
+            panelContainer = new Panel();
+            panelDraw = new Panel();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
+            panelContainer.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
             // 
             menuStrip1.ImageScalingSize = new Size(24, 24);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { MenuItemFile, MenuItemDrawing, MenuItemSetting });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { MenuItemFile, MenuItemDrawing, MenuItemSetting, 查看ToolStripMenuItem, 其它ToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1228, 32);
@@ -102,7 +114,7 @@
             MenuItemNew.Image = (Image)resources.GetObject("MenuItemNew.Image");
             MenuItemNew.Name = "MenuItemNew";
             MenuItemNew.ShortcutKeys = Keys.Control | Keys.N;
-            MenuItemNew.Size = new Size(270, 34);
+            MenuItemNew.Size = new Size(215, 34);
             MenuItemNew.Text = "新建";
             MenuItemNew.Click += MenuItemNew_Click;
             // 
@@ -111,7 +123,7 @@
             MenuItemOpen.Image = (Image)resources.GetObject("MenuItemOpen.Image");
             MenuItemOpen.Name = "MenuItemOpen";
             MenuItemOpen.ShortcutKeys = Keys.Control | Keys.O;
-            MenuItemOpen.Size = new Size(270, 34);
+            MenuItemOpen.Size = new Size(215, 34);
             MenuItemOpen.Text = "打开";
             MenuItemOpen.Click += MenuItemOpen_Click;
             // 
@@ -120,40 +132,40 @@
             MenuItemSave.Image = (Image)resources.GetObject("MenuItemSave.Image");
             MenuItemSave.Name = "MenuItemSave";
             MenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
-            MenuItemSave.Size = new Size(270, 34);
+            MenuItemSave.Size = new Size(215, 34);
             MenuItemSave.Text = "保存";
             MenuItemSave.Click += MenuItemSave_Click;
             // 
             // MenuItemSaveas
             // 
             MenuItemSaveas.Name = "MenuItemSaveas";
-            MenuItemSaveas.Size = new Size(270, 34);
+            MenuItemSaveas.Size = new Size(215, 34);
             MenuItemSaveas.Text = "另存为";
             MenuItemSaveas.Click += MenuItemSaveas_Click;
             // 
             // MenuItemSaveasPic
             // 
             MenuItemSaveasPic.Name = "MenuItemSaveasPic";
-            MenuItemSaveasPic.Size = new Size(270, 34);
+            MenuItemSaveasPic.Size = new Size(215, 34);
             MenuItemSaveasPic.Text = "另存为图片";
             MenuItemSaveasPic.Click += MenuItemSaveasPic_Click;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(267, 6);
+            toolStripMenuItem3.Size = new Size(212, 6);
             // 
             // MenuItemClose
             // 
             MenuItemClose.Name = "MenuItemClose";
             MenuItemClose.ShortcutKeys = Keys.Control | Keys.C;
-            MenuItemClose.Size = new Size(270, 34);
+            MenuItemClose.Size = new Size(215, 34);
             MenuItemClose.Text = "关闭";
             MenuItemClose.Click += MenuItemClose_Click;
             // 
             // MenuItemDrawing
             // 
-            MenuItemDrawing.DropDownItems.AddRange(new ToolStripItem[] { MenuItemLine, MenuItemRectangle, MenuItemCircle, MenuItemStop, toolStripMenuItem1, MenuItemUndo, MenuItemRedo });
+            MenuItemDrawing.DropDownItems.AddRange(new ToolStripItem[] { MenuItemLine, MenuItemRectangle, MenuItemCircle, MenuItemSketch, MenuItemStop, toolStripMenuItem1, MenuItemUndo, MenuItemRedo });
             MenuItemDrawing.Name = "MenuItemDrawing";
             MenuItemDrawing.ShortcutKeys = Keys.Control | Keys.D;
             MenuItemDrawing.Size = new Size(62, 28);
@@ -165,7 +177,7 @@
             MenuItemLine.Image = (Image)resources.GetObject("MenuItemLine.Image");
             MenuItemLine.Name = "MenuItemLine";
             MenuItemLine.ShortcutKeys = Keys.Control | Keys.L;
-            MenuItemLine.Size = new Size(212, 34);
+            MenuItemLine.Size = new Size(229, 34);
             MenuItemLine.Text = "直线";
             MenuItemLine.ToolTipText = "绘制直线";
             MenuItemLine.Click += MenuItemLine_Click;
@@ -175,7 +187,7 @@
             MenuItemRectangle.Image = (Image)resources.GetObject("MenuItemRectangle.Image");
             MenuItemRectangle.Name = "MenuItemRectangle";
             MenuItemRectangle.ShortcutKeys = Keys.Control | Keys.R;
-            MenuItemRectangle.Size = new Size(212, 34);
+            MenuItemRectangle.Size = new Size(229, 34);
             MenuItemRectangle.Text = "矩形";
             MenuItemRectangle.ToolTipText = "绘制矩形";
             MenuItemRectangle.Click += MenuItemRectangle_Click;
@@ -185,30 +197,39 @@
             MenuItemCircle.Image = (Image)resources.GetObject("MenuItemCircle.Image");
             MenuItemCircle.Name = "MenuItemCircle";
             MenuItemCircle.ShortcutKeys = Keys.Control | Keys.C;
-            MenuItemCircle.Size = new Size(212, 34);
+            MenuItemCircle.Size = new Size(229, 34);
             MenuItemCircle.Text = "圆";
             MenuItemCircle.Click += MenuItemCircle_Click;
+            // 
+            // MenuItemSketch
+            // 
+            MenuItemSketch.Image = (Image)resources.GetObject("MenuItemSketch.Image");
+            MenuItemSketch.Name = "MenuItemSketch";
+            MenuItemSketch.ShortcutKeys = Keys.Control | Keys.K;
+            MenuItemSketch.Size = new Size(229, 34);
+            MenuItemSketch.Text = "徒手画";
+            MenuItemSketch.Click += MenuItemSketch_Click;
             // 
             // MenuItemStop
             // 
             MenuItemStop.Image = (Image)resources.GetObject("MenuItemStop.Image");
             MenuItemStop.Name = "MenuItemStop";
             MenuItemStop.ShortcutKeys = Keys.Control | Keys.S;
-            MenuItemStop.Size = new Size(212, 34);
+            MenuItemStop.Size = new Size(229, 34);
             MenuItemStop.Text = "停止";
             MenuItemStop.Click += MenuItemStop_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(209, 6);
+            toolStripMenuItem1.Size = new Size(226, 6);
             // 
             // MenuItemUndo
             // 
             MenuItemUndo.Image = (Image)resources.GetObject("MenuItemUndo.Image");
             MenuItemUndo.Name = "MenuItemUndo";
             MenuItemUndo.ShortcutKeys = Keys.Control | Keys.Z;
-            MenuItemUndo.Size = new Size(212, 34);
+            MenuItemUndo.Size = new Size(229, 34);
             MenuItemUndo.Text = "撤销";
             MenuItemUndo.ToolTipText = "撤销图元";
             MenuItemUndo.Click += MenuItemUndo_Click;
@@ -218,7 +239,7 @@
             MenuItemRedo.Image = (Image)resources.GetObject("MenuItemRedo.Image");
             MenuItemRedo.Name = "MenuItemRedo";
             MenuItemRedo.ShortcutKeys = Keys.Control | Keys.X;
-            MenuItemRedo.Size = new Size(212, 34);
+            MenuItemRedo.Size = new Size(229, 34);
             MenuItemRedo.Text = "重做";
             MenuItemRedo.ToolTipText = "重做图元";
             MenuItemRedo.Click += MenuItemRedo_Click;
@@ -248,10 +269,49 @@
             MenuItemColor.ToolTipText = "设置颜色";
             MenuItemColor.Click += MenuItemColor_Click;
             // 
+            // 查看ToolStripMenuItem
+            // 
+            查看ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { MenuItemZoomIn, MenuItemZoomOut });
+            查看ToolStripMenuItem.Name = "查看ToolStripMenuItem";
+            查看ToolStripMenuItem.Size = new Size(62, 28);
+            查看ToolStripMenuItem.Text = "查看";
+            // 
+            // MenuItemZoomIn
+            // 
+            MenuItemZoomIn.Name = "MenuItemZoomIn";
+            MenuItemZoomIn.ShortcutKeys = Keys.Control | Keys.I;
+            MenuItemZoomIn.Size = new Size(215, 34);
+            MenuItemZoomIn.Text = "放大";
+            MenuItemZoomIn.Click += MenuItemZoomIn_Click;
+            // 
+            // MenuItemZoomOut
+            // 
+            MenuItemZoomOut.Name = "MenuItemZoomOut";
+            MenuItemZoomOut.ShortcutKeys = Keys.Control | Keys.O;
+            MenuItemZoomOut.Size = new Size(215, 34);
+            MenuItemZoomOut.Text = "缩小";
+            MenuItemZoomOut.Click += MenuItemZoomOut_Click;
+            // 
+            // 其它ToolStripMenuItem
+            // 
+            其它ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { MenuItemScreenPen });
+            其它ToolStripMenuItem.Name = "其它ToolStripMenuItem";
+            其它ToolStripMenuItem.Size = new Size(62, 28);
+            其它ToolStripMenuItem.Text = "其它";
+            // 
+            // MenuItemScreenPen
+            // 
+            MenuItemScreenPen.Image = (Image)resources.GetObject("MenuItemScreenPen.Image");
+            MenuItemScreenPen.Name = "MenuItemScreenPen";
+            MenuItemScreenPen.ShortcutKeys = Keys.F3;
+            MenuItemScreenPen.Size = new Size(213, 34);
+            MenuItemScreenPen.Text = "屏幕画笔";
+            MenuItemScreenPen.Click += MenuItemScreenPen_Click;
+            // 
             // toolStrip1
             // 
             toolStrip1.ImageScalingSize = new Size(24, 24);
-            toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripButtonLine, toolStripButtonRectangle, toolStripButtonCircle, toolStripSeparator1, toolStripButtonUndo, toolStripButtonRedo, toolStripButtonStop, toolStripSeparator2, toolStripButtonWidth, toolStripSplitButtonColor });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripButtonLine, toolStripButtonRectangle, toolStripButtonCircle, toolStripButtonSketch, toolStripSeparator1, toolStripButtonUndo, toolStripButtonRedo, toolStripButtonStop, toolStripSeparator2, toolStripButtonWidth, toolStripSplitButtonColor, toolStripButtonZoomIn, toolStripButtoZoomOut });
             toolStrip1.Location = new Point(0, 32);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1228, 33);
@@ -284,6 +344,15 @@
             toolStripButtonCircle.Size = new Size(56, 28);
             toolStripButtonCircle.Text = "圆";
             toolStripButtonCircle.Click += MenuItemCircle_Click;
+            // 
+            // toolStripButtonSketch
+            // 
+            toolStripButtonSketch.Image = (Image)resources.GetObject("toolStripButtonSketch.Image");
+            toolStripButtonSketch.ImageTransparentColor = Color.Magenta;
+            toolStripButtonSketch.Name = "toolStripButtonSketch";
+            toolStripButtonSketch.Size = new Size(92, 28);
+            toolStripButtonSketch.Text = "徒手画";
+            toolStripButtonSketch.Click += MenuItemSketch_Click;
             // 
             // toolStripSeparator1
             // 
@@ -416,6 +485,26 @@
             ToolStripMenuItemBlack.Text = "黑色";
             ToolStripMenuItemBlack.Click += ToolStripMenuItemBlack_Click;
             // 
+            // toolStripButtonZoomIn
+            // 
+            toolStripButtonZoomIn.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripButtonZoomIn.Image = (Image)resources.GetObject("toolStripButtonZoomIn.Image");
+            toolStripButtonZoomIn.ImageTransparentColor = Color.Magenta;
+            toolStripButtonZoomIn.Name = "toolStripButtonZoomIn";
+            toolStripButtonZoomIn.Size = new Size(50, 28);
+            toolStripButtonZoomIn.Text = "放大";
+            toolStripButtonZoomIn.Click += MenuItemZoomIn_Click;
+            // 
+            // toolStripButtoZoomOut
+            // 
+            toolStripButtoZoomOut.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripButtoZoomOut.Image = (Image)resources.GetObject("toolStripButtoZoomOut.Image");
+            toolStripButtoZoomOut.ImageTransparentColor = Color.Magenta;
+            toolStripButtoZoomOut.Name = "toolStripButtoZoomOut";
+            toolStripButtoZoomOut.Size = new Size(50, 28);
+            toolStripButtoZoomOut.Text = "缩小";
+            toolStripButtoZoomOut.Click += MenuItemZoomOut_Click;
+            // 
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(24, 24);
@@ -434,30 +523,56 @@
             // 
             // openFileDialog1
             // 
-            openFileDialog1.FileName = "*.dwg";
+            openFileDialog1.FileName = ".dwg";
             openFileDialog1.Filter = "所有文件|*.dwg";
             openFileDialog1.FilterIndex = 2;
-            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.InitialDirectory = "\\";
             // 
             // saveFileDialog1
             // 
-            saveFileDialog1.FileName = "*.dwg";
+            saveFileDialog1.FileName = ".dwg";
             saveFileDialog1.Filter = "所有文件|*.dwg";
             saveFileDialog1.FilterIndex = 2;
-            saveFileDialog1.InitialDirectory = "c:\\";
+            saveFileDialog1.InitialDirectory = "\\";
             // 
             // saveFileDialog2
             // 
-            saveFileDialog2.FileName = "*.gif";
+            saveFileDialog2.FileName = ".gif";
             saveFileDialog2.Filter = "所有文件|*.gif|*.jpg|*.png";
             saveFileDialog2.FilterIndex = 2;
+            saveFileDialog2.InitialDirectory = "\\";
             saveFileDialog2.Title = "保存为图片";
+            // 
+            // panelContainer
+            // 
+            panelContainer.AutoScroll = true;
+            panelContainer.BackColor = Color.Silver;
+            panelContainer.Controls.Add(panelDraw);
+            panelContainer.Dock = DockStyle.Fill;
+            panelContainer.Location = new Point(0, 65);
+            panelContainer.Name = "panelContainer";
+            panelContainer.Size = new Size(1228, 637);
+            panelContainer.TabIndex = 3;
+            // 
+            // panelDraw
+            // 
+            panelDraw.BackColor = Color.White;
+            panelDraw.BorderStyle = BorderStyle.FixedSingle;
+            panelDraw.Location = new Point(0, 0);
+            panelDraw.Name = "panelDraw";
+            panelDraw.Size = new Size(660, 410);
+            panelDraw.TabIndex = 0;
+            panelDraw.Paint += panelDraw_Paint;
+            panelDraw.MouseDown += panelDraw_MouseDown;
+            panelDraw.MouseMove += panelDraw_MouseMove;
+            panelDraw.MouseUp += panelDraw_MouseUp;
             // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(11F, 24F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1228, 733);
+            Controls.Add(panelContainer);
             Controls.Add(statusStrip1);
             Controls.Add(toolStrip1);
             Controls.Add(menuStrip1);
@@ -478,13 +593,14 @@
             toolStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            panelContainer.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private MenuStrip menuStrip1;
+        public MenuStrip menuStrip1;
         private ToolStripMenuItem MenuItemDrawing;
         private ToolStripMenuItem MenuItemLine;
         private ToolStripMenuItem MenuItemRectangle;
@@ -497,7 +613,7 @@
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripMenuItem MenuItemUndo;
         private ToolStripMenuItem MenuItemRedo;
-        private ToolStrip toolStrip1;
+        public ToolStrip toolStrip1;
         private ToolStripButton toolStripButtonLine;
         private ToolStripButton toolStripButtonRectangle;
         private ToolStripButton toolStripButtonCircle;
@@ -517,7 +633,7 @@
         private ToolStripMenuItem ToolStripMenuItemYellow;
         private ToolStripMenuItem ToolStripMenuItemBlue;
         private ToolStripMenuItem ToolStripMenuItemBlack;
-        private StatusStrip statusStrip1;
+        public  StatusStrip statusStrip1;
         private ToolStripStatusLabel StatusLabelPosition;
         private ToolStripMenuItem MenuItemFile;
         private ToolStripMenuItem MenuItemNew;
@@ -530,5 +646,16 @@
         private OpenFileDialog openFileDialog1;
         private SaveFileDialog saveFileDialog1;
         private SaveFileDialog saveFileDialog2;
+        private ToolStripMenuItem MenuItemSketch;
+        private ToolStripButton toolStripButtonSketch;
+        private Panel panelContainer;
+        private Panel panelDraw;
+        private ToolStripMenuItem 查看ToolStripMenuItem;
+        private ToolStripMenuItem MenuItemZoomIn;
+        private ToolStripMenuItem MenuItemZoomOut;
+        private ToolStripButton toolStripButtonZoomIn;
+        private ToolStripButton toolStripButtoZoomOut;
+        private ToolStripMenuItem 其它ToolStripMenuItem;
+        private ToolStripMenuItem MenuItemScreenPen;
     }
 }
